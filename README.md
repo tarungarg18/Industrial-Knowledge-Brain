@@ -150,12 +150,3 @@ npm run dev
 | [Deployment](docs/DEPLOYMENT.md) | Deploying to Lemma Apps + Render |
 | [Known Issues](docs/KNOWN_ISSUES.md) | Current Lemma platform limitations and workarounds |
 
----
-
-## Built for Lemma AI Hackathon
-
-This project demonstrates Lemma AI's capabilities for enterprise knowledge management:
-- Multi-agent document processing pipelines
-- Human-in-the-loop quality workflows
-- Hybrid vector + keyword search on uploaded documents
-- Structured knowledge extraction into queryable tables
