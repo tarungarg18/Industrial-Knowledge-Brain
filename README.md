@@ -8,7 +8,7 @@ Upload equipment manuals, SOPs, inspection reports, and safety documents. AI age
 
 ## Live Demo
 
-Deployed at: **[knowledge-brain.apps.lemma.work](https://knowledge-brain.apps.lemma.work)**
+Deployed at: **[knowledge-brain.apps.lemma.work](https://knowledge-brain.apps.lemma.work/dashboard)**
 
 ---
 
