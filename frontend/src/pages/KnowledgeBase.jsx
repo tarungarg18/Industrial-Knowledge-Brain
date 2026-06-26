@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
-import api from '../api'
+import { useState } from 'react'
+import { useRecords } from 'lemma-sdk/react'
 import { Database, Search, AlertCircle } from 'lucide-react'
+import { client } from '../lemma'
 
 const ENTITY_TYPES = ['all', 'equipment', 'part', 'procedure_step', 'specification', 'safety_rule', 'parameter', 'chemical', 'tool', 'warning']
 
@@ -17,34 +18,32 @@ const TYPE_COLORS = {
 }
 
 export default function KnowledgeBase() {
-  const [entities, setEntities] = useState([])
-  const [equipment, setEquipment] = useState([])
   const [tab, setTab] = useState('entities')
   const [typeFilter, setTypeFilter] = useState('all')
   const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
 
-  useEffect(() => {
-    setLoading(true)
-    setError(null)
-    const params = {}
-    if (typeFilter !== 'all') params.entity_type = typeFilter
-    Promise.all([
-      api.get('/api/entities', { params }),
-      api.get('/api/equipment'),
-    ]).then(([e, eq]) => {
-      setEntities(e.data.items || [])
-      setEquipment(eq.data.items || [])
-    }).catch(err => {
-      setError(err.response?.data?.detail || 'Failed to load knowledge base.')
-    }).finally(() => setLoading(false))
-  }, [typeFilter])
+  const entitiesRes = useRecords({
+    client,
+    tableName: 'knowledge_entities',
+    filters: typeFilter !== 'all' ? [{ field: 'entity_type', op: 'eq', value: typeFilter }] : [],
+    sort: [{ field: 'confidence', direction: 'desc' }],
+    limit: 300,
+  })
 
-  // Reset search when switching tabs so results aren't confusingly filtered
+  const equipmentRes = useRecords({
+    client,
+    tableName: 'equipment',
+    sort: [{ field: 'name', direction: 'asc' }],
+    limit: 300,
+  })
+
   const switchTab = (t) => { setTab(t); setSearch('') }
 
-  const filtered = (tab === 'entities' ? entities : equipment).filter(item => {
+  const source = tab === 'entities' ? entitiesRes.records : equipmentRes.records
+  const isLoading = tab === 'entities' ? entitiesRes.isLoading : equipmentRes.isLoading
+  const error = tab === 'entities' ? entitiesRes.error : equipmentRes.error
+
+  const filtered = source.filter(item => {
     if (!search) return true
     const s = search.toLowerCase()
     return (item.name || '').toLowerCase().includes(s) || (item.description || '').toLowerCase().includes(s)
@@ -58,7 +57,7 @@ export default function KnowledgeBase() {
       {error && (
         <div className="flex items-center gap-2 bg-red-950 border border-red-800 text-red-300 rounded-xl px-4 py-3 text-sm mb-5">
           <AlertCircle size={14} className="shrink-0" />
-          {error}
+          {error.message || 'Failed to load knowledge base.'}
         </div>
       )}
 
@@ -103,7 +102,7 @@ export default function KnowledgeBase() {
         </div>
       )}
 
-      {loading ? (
+      {isLoading ? (
         <div className="text-gray-500 text-sm">Loading...</div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 text-gray-500">

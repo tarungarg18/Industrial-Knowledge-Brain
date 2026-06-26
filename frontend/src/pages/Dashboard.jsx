@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
-import api from '../api'
+import { useRecordAggregates, useRecords } from 'lemma-sdk/react'
 import { FileText, CheckCircle, Clock, Cpu, Layers, Wrench, AlertCircle } from 'lucide-react'
+import { client } from '../lemma'
 
 function StatCard({ icon: Icon, label, value, color }) {
   return (
@@ -17,18 +17,28 @@ function StatCard({ icon: Icon, label, value, color }) {
 }
 
 export default function Dashboard() {
-  const [stats, setStats] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const docAgg = useRecordAggregates({
+    client,
+    tableName: 'documents',
+    metrics: [{ key: 'count', op: 'count' }],
+    groupBy: 'status',
+  })
 
-  useEffect(() => {
-    setLoading(true)
-    setError(null)
-    api.get('/api/stats')
-      .then(r => setStats(r.data))
-      .catch(err => setError(err.response?.data?.detail || 'Failed to load stats. Is the backend running?'))
-      .finally(() => setLoading(false))
-  }, [])
+  const entitiesRes = useRecords({ client, tableName: 'knowledge_entities', limit: 1 })
+  const equipmentRes = useRecords({ client, tableName: 'equipment', limit: 1 })
+
+  const loading = docAgg.isLoading || entitiesRes.isLoading || equipmentRes.isLoading
+  const error = docAgg.error || entitiesRes.error || equipmentRes.error
+
+  const rows = docAgg.rows ?? []
+  const byStatus = (s) => Number(rows.find(r => r.status === s)?.count ?? 0)
+  const processingStatuses = ['uploaded', 'processing', 'indexed']
+  const totalDocs = rows.reduce((sum, r) => sum + Number(r.count ?? 0), 0)
+  const approved = byStatus('approved')
+  const pending = byStatus('quality_review')
+  const processing = rows
+    .filter(r => processingStatuses.includes(r.status))
+    .reduce((sum, r) => sum + Number(r.count ?? 0), 0)
 
   return (
     <div className="p-8">
@@ -38,17 +48,17 @@ export default function Dashboard() {
       {error && (
         <div className="flex items-center gap-2 bg-red-950 border border-red-800 text-red-300 rounded-xl px-4 py-3 text-sm mb-6">
           <AlertCircle size={14} className="shrink-0" />
-          {error}
+          {error.message || 'Failed to load stats.'}
         </div>
       )}
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
-        <StatCard icon={FileText}    label="Total Documents"    value={loading ? '…' : stats?.total_documents}  color="bg-sky-700" />
-        <StatCard icon={CheckCircle} label="Approved"           value={loading ? '…' : stats?.approved}          color="bg-green-700" />
-        <StatCard icon={Clock}       label="Pending Review"     value={loading ? '…' : stats?.pending_review}    color="bg-orange-700" />
-        <StatCard icon={Cpu}         label="Processing"         value={loading ? '…' : stats?.processing}        color="bg-yellow-700" />
-        <StatCard icon={Layers}      label="Knowledge Entities" value={loading ? '…' : stats?.total_entities}    color="bg-purple-700" />
-        <StatCard icon={Wrench}      label="Equipment Records"  value={loading ? '…' : stats?.total_equipment}   color="bg-blue-700" />
+        <StatCard icon={FileText}    label="Total Documents"    value={loading ? '…' : totalDocs}              color="bg-sky-700" />
+        <StatCard icon={CheckCircle} label="Approved"           value={loading ? '…' : approved}               color="bg-green-700" />
+        <StatCard icon={Clock}       label="Pending Review"     value={loading ? '…' : pending}                color="bg-orange-700" />
+        <StatCard icon={Cpu}         label="Processing"         value={loading ? '…' : processing}             color="bg-yellow-700" />
+        <StatCard icon={Layers}      label="Knowledge Entities" value={loading ? '…' : entitiesRes.total}      color="bg-purple-700" />
+        <StatCard icon={Wrench}      label="Equipment Records"  value={loading ? '…' : equipmentRes.total}     color="bg-blue-700" />
       </div>
 
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">

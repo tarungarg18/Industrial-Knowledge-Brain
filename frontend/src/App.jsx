@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthGuard } from 'lemma-sdk/react'
+import { client } from './lemma'
 import Sidebar from './components/Sidebar'
 import Dashboard from './pages/Dashboard'
 import Documents from './pages/Documents'
@@ -9,6 +11,7 @@ import KnowledgeBase from './pages/KnowledgeBase'
 
 export default function App() {
   return (
+    <AuthGuard client={client}>
     <BrowserRouter>
       <div className="flex h-screen overflow-hidden">
         <Sidebar />
@@ -25,5 +28,6 @@ export default function App() {
         </main>
       </div>
     </BrowserRouter>
+    </AuthGuard>
   )
 }

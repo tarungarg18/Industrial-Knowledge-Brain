@@ -1,0 +1,40 @@
+{
+  "name": "ikb-bot-agent",
+  "description": "WhatsApp and Telegram bot agent for Industrial Knowledge Brain. Answers knowledge base queries and ingests uploaded documents.",
+  "instruction": { "$file": "instruction.md" },
+  "toolsets": ["POD"],
+  "permissions": {
+    "grants": [
+      {
+        "resource_type": "datastore_table",
+        "resource_name": "documents",
+        "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"]
+      },
+      {
+        "resource_type": "datastore_table",
+        "resource_name": "knowledge_entities",
+        "permission_ids": ["datastore.table.read", "datastore.record.read"]
+      },
+      {
+        "resource_type": "datastore_table",
+        "resource_name": "equipment",
+        "permission_ids": ["datastore.table.read", "datastore.record.read"]
+      },
+      {
+        "resource_type": "datastore_table",
+        "resource_name": "procedures",
+        "permission_ids": ["datastore.table.read", "datastore.record.read"]
+      },
+      {
+        "resource_type": "folder",
+        "resource_name": "/knowledge",
+        "permission_ids": ["folder.read"]
+      },
+      {
+        "resource_type": "folder",
+        "resource_name": "/inbox",
+        "permission_ids": ["folder.read", "folder.write"]
+      },
+    ]
+  }
+}

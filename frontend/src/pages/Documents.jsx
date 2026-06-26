@@ -1,43 +1,34 @@
-import { useEffect, useState, useRef } from 'react'
-import api from '../api'
+import { useState, useEffect, useRef } from 'react'
+import { useRecords } from 'lemma-sdk/react'
 import { Link } from 'react-router-dom'
 import { RefreshCw, FileText, AlertCircle } from 'lucide-react'
 import StatusBadge from '../components/StatusBadge'
+import { client } from '../lemma'
 
 const STATUS_FILTERS = ['all', 'uploaded', 'processing', 'indexed', 'quality_review', 'approved', 'archived']
 const PROCESSING_STATUSES = new Set(['uploaded', 'processing', 'indexed'])
 
 export default function Documents() {
-  const [docs, setDocs] = useState([])
   const [filter, setFilter] = useState('all')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
   const pollRef = useRef(null)
 
-  const load = async (silent = false) => {
-    if (!silent) { setLoading(true); setError(null) }
-    try {
-      const params = filter !== 'all' ? { status: filter } : {}
-      const { data } = await api.get('/api/documents', { params })
-      setDocs(data.items || [])
-    } catch (err) {
-      if (!silent) setError(err.response?.data?.detail || 'Failed to load documents.')
-    } finally {
-      if (!silent) setLoading(false)
-    }
-  }
+  const { records: docs, isLoading, error, refresh } = useRecords({
+    client,
+    tableName: 'documents',
+    filters: filter !== 'all' ? [{ field: 'status', op: 'eq', value: filter }] : [],
+    sort: [{ field: 'created_at', direction: 'desc' }],
+    limit: 200,
+  })
 
-  useEffect(() => { load() }, [filter])
-
+  const hasProcessing = docs.some(d => PROCESSING_STATUSES.has(d.status))
   useEffect(() => {
-    const hasProcessing = docs.some(d => PROCESSING_STATUSES.has(d.status))
     if (hasProcessing) {
-      pollRef.current = setInterval(() => load(true), 5000)
+      pollRef.current = setInterval(() => refresh(), 5000)
     } else {
       clearInterval(pollRef.current)
     }
     return () => clearInterval(pollRef.current)
-  }, [docs, filter])
+  }, [hasProcessing, refresh])
 
   return (
     <div className="p-8">
@@ -46,7 +37,7 @@ export default function Documents() {
           <h1 className="text-2xl font-bold text-white mb-1">Documents</h1>
           <p className="text-gray-400 text-sm">{docs.length} document{docs.length !== 1 ? 's' : ''}</p>
         </div>
-        <button onClick={() => load()} className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
+        <button onClick={() => refresh()} className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
           <RefreshCw size={14} /> Refresh
         </button>
       </div>
@@ -54,7 +45,7 @@ export default function Documents() {
       {error && (
         <div className="flex items-center gap-2 bg-red-950 border border-red-800 text-red-300 rounded-xl px-4 py-3 text-sm mb-5">
           <AlertCircle size={14} className="shrink-0" />
-          {error}
+          {error.message || 'Failed to load documents.'}
         </div>
       )}
 
@@ -72,7 +63,7 @@ export default function Documents() {
         ))}
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="text-gray-500 text-sm">Loading...</div>
       ) : docs.length === 0 ? (
         <div className="text-center py-16 text-gray-500">
@@ -92,7 +83,7 @@ export default function Documents() {
                 )}
                 {doc.tags?.length > 0 && (
                   <div className="flex gap-1 mt-2 flex-wrap">
-                    {(doc.tags || []).slice(0, 5).map((tag, i) => (
+                    {doc.tags.slice(0, 5).map((tag, i) => (
                       <span key={i} className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded">{tag}</span>
                     ))}
                   </div>

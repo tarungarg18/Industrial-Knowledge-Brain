@@ -1,36 +1,34 @@
-import { useEffect, useState } from 'react'
-import api from '../api'
+import { useState } from 'react'
+import { useRecords } from 'lemma-sdk/react'
 import { CheckCircle, XCircle, RefreshCw, ClipboardCheck, AlertCircle } from 'lucide-react'
+import { client } from '../lemma'
 
 export default function ApprovalQueue() {
-  const [docs, setDocs] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
   const [processing, setProcessing] = useState({})
   const [decideError, setDecideError] = useState({})
 
-  const load = () => {
-    setLoading(true)
-    setError(null)
-    api.get('/api/approvals')
-      .then(r => setDocs(r.data.items || []))
-      .catch(err => setError(err.response?.data?.detail || 'Failed to load approval queue.'))
-      .finally(() => setLoading(false))
-  }
-
-  useEffect(load, [])
+  const { records: docs, isLoading, error, refresh } = useRecords({
+    client,
+    tableName: 'documents',
+    filters: [{ field: 'status', op: 'eq', value: 'quality_review' }],
+    sort: [{ field: 'created_at', direction: 'asc' }],
+    limit: 100,
+  })
 
   const decide = async (docId, approved) => {
     setProcessing(p => ({ ...p, [docId]: true }))
     setDecideError(e => ({ ...e, [docId]: null }))
     try {
-      await api.post(`/api/approvals/${docId}`, {
-        approved,
-        comments: approved ? 'Approved via review queue' : 'Rejected via review queue',
+      await client.functions.run('approve_knowledge', {
+        input: {
+          document_id: docId,
+          approved,
+          comments: approved ? 'Approved via review queue' : 'Rejected via review queue',
+        },
       })
-      setDocs(prev => prev.filter(d => d.id !== docId))
+      await refresh()
     } catch (err) {
-      setDecideError(e => ({ ...e, [docId]: err.response?.data?.detail || 'Action failed. Try again.' }))
+      setDecideError(e => ({ ...e, [docId]: err.message || 'Action failed. Try again.' }))
     } finally {
       setProcessing(p => ({ ...p, [docId]: false }))
     }
@@ -43,7 +41,7 @@ export default function ApprovalQueue() {
           <h1 className="text-2xl font-bold text-white mb-1">Approval Queue</h1>
           <p className="text-gray-400 text-sm">{docs.length} document{docs.length !== 1 ? 's' : ''} pending review</p>
         </div>
-        <button onClick={load} className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
+        <button onClick={() => refresh()} className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
           <RefreshCw size={14} /> Refresh
         </button>
       </div>
@@ -51,11 +49,11 @@ export default function ApprovalQueue() {
       {error && (
         <div className="flex items-center gap-2 bg-red-950 border border-red-800 text-red-300 rounded-xl px-4 py-3 text-sm mb-5">
           <AlertCircle size={14} className="shrink-0" />
-          {error}
+          {error.message || 'Failed to load approval queue.'}
         </div>
       )}
 
-      {loading ? (
+      {isLoading ? (
         <div className="text-gray-500 text-sm">Loading...</div>
       ) : docs.length === 0 && !error ? (
         <div className="text-center py-16 text-gray-500">
@@ -75,7 +73,7 @@ export default function ApprovalQueue() {
                   )}
                   {doc.tags?.length > 0 && (
                     <div className="flex gap-1 mt-2 flex-wrap">
-                      {(doc.tags || []).slice(0, 6).map((tag, i) => (
+                      {doc.tags.slice(0, 6).map((tag, i) => (
                         <span key={i} className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded">{tag}</span>
                       ))}
                     </div>
