@@ -1,0 +1,56 @@
+{
+  "name": "knowledge-query",
+  "description": "Takes a user's natural-language question, routes it through the QA agent, and logs the Q&A pair for audit.",
+  "start": { "type": "MANUAL" },
+  "nodes": [
+    {
+      "id": "ask_question",
+      "type": "FORM",
+      "label": "Ask a Question",
+      "config": {
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "question": { "type": "string", "title": "Your question", "description": "Ask anything about equipment, procedures, specs, or safety in the knowledge base" }
+          },
+          "required": ["question"]
+        }
+      }
+    },
+    {
+      "id": "answer_query",
+      "type": "AGENT",
+      "label": "Answer from Knowledge Base",
+      "config": {
+        "agent_name": "knowledge-qa-agent",
+        "input_mapping": {
+          "input": { "type": "expression", "value": "ask_question.question" }
+        }
+      }
+    },
+    {
+      "id": "log_query",
+      "type": "FUNCTION",
+      "label": "Record Q&A",
+      "config": {
+        "function_name": "record_query",
+        "input_mapping": {
+          "query_text": { "type": "expression", "value": "ask_question.question" },
+          "answer_text": { "type": "expression", "value": "answer_query.answer" },
+          "source_document_ids": { "type": "expression", "value": "answer_query.sources[*].document_id", "optional": true },
+          "execution_time_ms": { "type": "literal", "value": 0 }
+        }
+      }
+    },
+    {
+      "id": "end",
+      "type": "END",
+      "label": "Done"
+    }
+  ],
+  "edges": [
+    { "id": "e1", "source": "ask_question", "target": "answer_query" },
+    { "id": "e2", "source": "answer_query", "target": "log_query" },
+    { "id": "e3", "source": "log_query", "target": "end" }
+  ]
+}

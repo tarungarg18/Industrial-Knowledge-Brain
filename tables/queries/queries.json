@@ -1,0 +1,16 @@
+{
+  "name": "queries",
+  "primary_key_column": "id",
+  "enable_rls": false,
+  "columns": [
+    { "name": "query_text", "type": "TEXT", "required": true },
+    { "name": "answer_text", "type": "TEXT" },
+    { "name": "source_document_ids", "type": "JSON" },
+    { "name": "source_entity_ids", "type": "JSON" },
+    { "name": "user_feedback", "type": "ENUM", "default": "unrated",
+      "options": ["helpful", "not_helpful", "unrated"] },
+    { "name": "execution_time_ms", "type": "INTEGER" },
+    { "name": "asked_by", "type": "USER" }
+  ],
+  "config": {}
+}

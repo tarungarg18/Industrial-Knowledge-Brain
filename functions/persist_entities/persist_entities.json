@@ -1,0 +1,20 @@
+{
+  "name": "persist_entities",
+  "description": "Takes the knowledge-extractor's JSON output and reliably writes each entity to knowledge_entities and each equipment item to the equipment table. Deterministic persistence — does not rely on the agent making write calls.",
+  "type": "API",
+  "code": { "$file": "code.py" },
+  "permissions": {
+    "grants": [
+      {
+        "resource_type": "datastore_table",
+        "resource_name": "knowledge_entities",
+        "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"]
+      },
+      {
+        "resource_type": "datastore_table",
+        "resource_name": "equipment",
+        "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"]
+      }
+    ]
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "name": "knowledge-qa-agent",
+  "description": "Answers natural-language questions using the pod's structured knowledge base (entities, equipment, procedures) and indexed document files with source citations.",
+  "instruction": { "$file": "instruction.md" },
+  "toolsets": ["POD"],
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "answer": { "type": "string" },
+      "sources": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "document_id": { "type": "string" },
+            "title": { "type": "string" },
+            "page_number": { "type": "integer" },
+            "entity_type": { "type": "string" }
+          },
+          "required": ["document_id", "title"]
+        }
+      },
+      "confidence": { "type": "number" }
+    },
+    "required": ["answer", "sources", "confidence"]
+  },
+  "permissions": {
+    "grants": [
+      {
+        "resource_type": "datastore_table",
+        "resource_name": "documents",
+        "permission_ids": ["datastore.table.read", "datastore.record.read"]
+      },
+      {
+        "resource_type": "datastore_table",
+        "resource_name": "knowledge_entities",
+        "permission_ids": ["datastore.table.read", "datastore.record.read"]
+      },
+      {
+        "resource_type": "datastore_table",
+        "resource_name": "equipment",
+        "permission_ids": ["datastore.table.read", "datastore.record.read"]
+      },
+      {
+        "resource_type": "datastore_table",
+        "resource_name": "procedures",
+        "permission_ids": ["datastore.table.read", "datastore.record.read"]
+      },
+      {
+        "resource_type": "folder",
+        "resource_name": "/knowledge",
+        "permission_ids": ["folder.read"]
+      }
+    ]
+  }
+}

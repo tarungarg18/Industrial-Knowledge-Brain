@@ -1,0 +1,61 @@
+{
+  "name": "quality-reviewer",
+  "description": "Audits extracted knowledge entities against source documents, scoring accuracy and completeness, and recommending approvals or rework.",
+  "instruction": { "$file": "instruction.md" },
+  "toolsets": ["POD"],
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "document_id": { "type": "string" }
+    },
+    "required": ["document_id"]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "accuracy_score": { "type": "number" },
+      "completeness_score": { "type": "number" },
+      "issues": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "severity": { "type": "string" },
+            "description": { "type": "string" }
+          },
+          "required": ["severity", "description"]
+        }
+      },
+      "recommendations": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "auto_approve": { "type": "boolean" }
+    },
+    "required": ["accuracy_score", "completeness_score", "issues", "recommendations", "auto_approve"]
+  },
+  "permissions": {
+    "grants": [
+      {
+        "resource_type": "datastore_table",
+        "resource_name": "documents",
+        "permission_ids": ["datastore.table.read", "datastore.record.read"]
+      },
+      {
+        "resource_type": "datastore_table",
+        "resource_name": "knowledge_entities",
+        "permission_ids": ["datastore.table.read", "datastore.record.read"]
+      },
+      {
+        "resource_type": "datastore_table",
+        "resource_name": "quality_reviews",
+        "permission_ids": ["datastore.table.read", "datastore.record.read"]
+      },
+      {
+        "resource_type": "folder",
+        "resource_name": "/knowledge",
+        "permission_ids": ["folder.read"]
+      }
+    ]
+  }
+}

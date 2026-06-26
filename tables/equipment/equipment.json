@@ -1,0 +1,20 @@
+{
+  "name": "equipment",
+  "primary_key_column": "id",
+  "enable_rls": false,
+  "columns": [
+    { "name": "name", "type": "TEXT", "required": true, "max_length": 300 },
+    { "name": "document_id", "type": "UUID", "foreign_key": { "references": "documents.id" } },
+    { "name": "equipment_code", "type": "TEXT", "unique": true, "max_length": 100 },
+    { "name": "category", "type": "ENUM", "required": true,
+      "options": ["mechanical", "electrical", "hydraulic", "pneumatic", "instrumentation", "structural", "safety_system"] },
+    { "name": "description", "type": "TEXT" },
+    { "name": "manufacturer", "type": "TEXT" },
+    { "name": "model", "type": "TEXT" },
+    { "name": "location", "type": "TEXT" },
+    { "name": "status", "type": "ENUM", "default": "active",
+      "options": ["active", "maintenance", "decommissioned"] },
+    { "name": "specifications", "type": "JSON" }
+  ],
+  "config": {}
+}

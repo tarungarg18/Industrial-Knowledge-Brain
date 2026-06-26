@@ -1,0 +1,19 @@
+{
+  "name": "knowledge_entities",
+  "primary_key_column": "id",
+  "enable_rls": false,
+  "columns": [
+    { "name": "document_id", "type": "UUID", "required": true,
+      "foreign_key": { "references": "documents.id" } },
+    { "name": "entity_type", "type": "ENUM", "required": true,
+      "options": ["equipment", "part", "procedure_step", "specification", "safety_rule", "parameter", "chemical", "tool", "warning"] },
+    { "name": "name", "type": "TEXT", "required": true, "max_length": 300 },
+    { "name": "description", "type": "TEXT" },
+    { "name": "attributes", "type": "JSON" },
+    { "name": "source_page", "type": "INTEGER" },
+    { "name": "confidence", "type": "FLOAT" },
+    { "name": "verified", "type": "BOOLEAN", "default": false },
+    { "name": "verified_by", "type": "USER" }
+  ],
+  "config": {}
+}

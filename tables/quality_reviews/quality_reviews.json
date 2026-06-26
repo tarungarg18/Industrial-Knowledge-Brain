@@ -1,0 +1,17 @@
+{
+  "name": "quality_reviews",
+  "primary_key_column": "id",
+  "enable_rls": false,
+  "columns": [
+    { "name": "document_id", "type": "UUID", "required": true,
+      "foreign_key": { "references": "documents.id" } },
+    { "name": "reviewer_user_id", "type": "USER" },
+    { "name": "accuracy_score", "type": "FLOAT" },
+    { "name": "completeness_score", "type": "FLOAT" },
+    { "name": "comments", "type": "TEXT" },
+    { "name": "status", "type": "ENUM", "default": "pending",
+      "options": ["pending", "accepted", "rejected", "needs_revision"] },
+    { "name": "review_date", "type": "DATE" }
+  ],
+  "config": {}
+}

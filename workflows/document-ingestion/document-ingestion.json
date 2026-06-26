@@ -1,0 +1,177 @@
+{
+  "name": "document-ingestion",
+  "description": "Orchestrates the full ingestion pipeline for a newly uploaded document: process → classify → extract entities → quality gate → approve.",
+  "start": { "type": "MANUAL" },
+  "nodes": [
+    {
+      "id": "start_form",
+      "type": "FORM",
+      "label": "Document ID Input",
+      "config": {
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "document_id": { "type": "string", "description": "UUID of the document record to process" }
+          },
+          "required": ["document_id"]
+        }
+      }
+    },
+    {
+      "id": "process_doc",
+      "type": "FUNCTION",
+      "label": "Initialize Processing",
+      "config": {
+        "function_name": "process_document",
+        "input_mapping": {
+          "document_id": { "type": "expression", "value": "start_form.document_id" }
+        }
+      }
+    },
+    {
+      "id": "classify_doc",
+      "type": "AGENT",
+      "label": "Classify & Summarize",
+      "config": {
+        "agent_name": "document-indexer",
+        "input_mapping": {
+          "document_id": { "type": "expression", "value": "process_doc.document_id" },
+          "file_path": { "type": "expression", "value": "process_doc.file_path" }
+        }
+      }
+    },
+    {
+      "id": "extract_entities",
+      "type": "AGENT",
+      "label": "Extract Knowledge Entities",
+      "config": {
+        "agent_name": "knowledge-extractor",
+        "input_mapping": {
+          "document_id": { "type": "expression", "value": "process_doc.document_id" },
+          "file_path": { "type": "expression", "value": "process_doc.file_path" }
+        }
+      }
+    },
+    {
+      "id": "persist_entities",
+      "type": "FUNCTION",
+      "label": "Save Entities to Tables",
+      "config": {
+        "function_name": "persist_entities",
+        "input_mapping": {
+          "document_id": { "type": "expression", "value": "process_doc.document_id" },
+          "entities": { "type": "expression", "value": "extract_entities.entities", "optional": true },
+          "equipment_found": { "type": "expression", "value": "extract_entities.equipment_found", "optional": true },
+          "procedures_found": { "type": "expression", "value": "extract_entities.procedures_found", "optional": true },
+          "summary": { "type": "expression", "value": "classify_doc.summary", "optional": true },
+          "doc_type": { "type": "expression", "value": "classify_doc.doc_type", "optional": true },
+          "tags": { "type": "expression", "value": "classify_doc.tags", "optional": true }
+        }
+      }
+    },
+    {
+      "id": "quality_gate",
+      "type": "DECISION",
+      "label": "Auto-approve or Human Review?",
+      "config": {
+        "rules": [
+          {
+            "condition": "classify_doc.confidence >= `0.8` && classify_doc.doc_type != 'safety_document'",
+            "next_node_id": "auto_approve"
+          }
+        ]
+      }
+    },
+    {
+      "id": "auto_approve",
+      "type": "FUNCTION",
+      "label": "Auto-approve Knowledge",
+      "config": {
+        "function_name": "approve_knowledge",
+        "input_mapping": {
+          "document_id": { "type": "expression", "value": "process_doc.document_id" },
+          "approved": { "type": "literal", "value": true },
+          "accuracy_score": { "type": "literal", "value": 85.0 },
+          "completeness_score": { "type": "literal", "value": 85.0 },
+          "comments": { "type": "literal", "value": "Auto-approved: high-confidence non-safety document" }
+        }
+      }
+    },
+    {
+      "id": "quality_review_form",
+      "type": "FORM",
+      "label": "Human Quality Review",
+      "config": {
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "approved": { "type": "boolean" },
+            "accuracy_score": { "type": "number", "minimum": 0, "maximum": 100 },
+            "completeness_score": { "type": "number", "minimum": 0, "maximum": 100 },
+            "comments": { "type": "string" }
+          },
+          "required": ["approved"]
+        }
+      }
+    },
+    {
+      "id": "review_decision",
+      "type": "DECISION",
+      "label": "Human Approved?",
+      "config": {
+        "rules": [
+          {
+            "condition": "quality_review_form.approved == `true`",
+            "next_node_id": "human_approve"
+          }
+        ]
+      }
+    },
+    {
+      "id": "human_approve",
+      "type": "FUNCTION",
+      "label": "Record Human Approval",
+      "config": {
+        "function_name": "approve_knowledge",
+        "input_mapping": {
+          "document_id": { "type": "expression", "value": "process_doc.document_id" },
+          "approved": { "type": "expression", "value": "quality_review_form.approved" },
+          "accuracy_score": { "type": "expression", "value": "quality_review_form.accuracy_score", "optional": true },
+          "completeness_score": { "type": "expression", "value": "quality_review_form.completeness_score", "optional": true },
+          "comments": { "type": "expression", "value": "quality_review_form.comments", "optional": true }
+        }
+      }
+    },
+    {
+      "id": "human_reject",
+      "type": "FUNCTION",
+      "label": "Record Human Rejection",
+      "config": {
+        "function_name": "approve_knowledge",
+        "input_mapping": {
+          "document_id": { "type": "expression", "value": "process_doc.document_id" },
+          "approved": { "type": "literal", "value": false },
+          "comments": { "type": "expression", "value": "quality_review_form.comments", "optional": true }
+        }
+      }
+    },
+    {
+      "id": "end",
+      "type": "END",
+      "label": "Done"
+    }
+  ],
+  "edges": [
+    { "id": "e0", "source": "start_form", "target": "process_doc" },
+    { "id": "e1", "source": "process_doc", "target": "classify_doc" },
+    { "id": "e2", "source": "classify_doc", "target": "extract_entities" },
+    { "id": "e3", "source": "extract_entities", "target": "persist_entities" },
+    { "id": "e3b", "source": "persist_entities", "target": "quality_gate" },
+    { "id": "e4", "source": "quality_gate", "target": "quality_review_form", "label": "needs human review (default)" },
+    { "id": "e5", "source": "auto_approve", "target": "end" },
+    { "id": "e6", "source": "quality_review_form", "target": "review_decision" },
+    { "id": "e7", "source": "review_decision", "target": "human_reject", "label": "rejected (default)" },
+    { "id": "e8", "source": "human_approve", "target": "end" },
+    { "id": "e9", "source": "human_reject", "target": "end" }
+  ]
+}

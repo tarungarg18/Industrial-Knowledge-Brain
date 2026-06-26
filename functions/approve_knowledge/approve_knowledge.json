@@ -1,0 +1,25 @@
+{
+  "name": "approve_knowledge",
+  "description": "Records a quality review decision, updates document status, and marks knowledge entities as verified or rejected.",
+  "type": "API",
+  "code": { "$file": "code.py" },
+  "permissions": {
+    "grants": [
+      {
+        "resource_type": "datastore_table",
+        "resource_name": "documents",
+        "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"]
+      },
+      {
+        "resource_type": "datastore_table",
+        "resource_name": "knowledge_entities",
+        "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"]
+      },
+      {
+        "resource_type": "datastore_table",
+        "resource_name": "quality_reviews",
+        "permission_ids": ["datastore.record.read", "datastore.record.write"]
+      }
+    ]
+  }
+}

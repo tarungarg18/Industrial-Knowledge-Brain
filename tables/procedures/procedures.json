@@ -1,0 +1,22 @@
+{
+  "name": "procedures",
+  "primary_key_column": "id",
+  "enable_rls": false,
+  "columns": [
+    { "name": "title", "type": "TEXT", "required": true, "max_length": 400 },
+    { "name": "document_id", "type": "UUID",
+      "foreign_key": { "references": "documents.id" } },
+    { "name": "equipment_id", "type": "UUID",
+      "foreign_key": { "references": "equipment.id" } },
+    { "name": "procedure_type", "type": "ENUM", "required": true,
+      "options": ["operation", "maintenance", "safety", "inspection", "emergency"] },
+    { "name": "status", "type": "ENUM", "default": "draft",
+      "options": ["draft", "active", "archived"] },
+    { "name": "steps", "type": "JSON" },
+    { "name": "risk_level", "type": "ENUM", "default": "low",
+      "options": ["low", "medium", "high", "critical"] },
+    { "name": "review_date", "type": "DATE" },
+    { "name": "owner_user_id", "type": "USER" }
+  ],
+  "config": {}
+}

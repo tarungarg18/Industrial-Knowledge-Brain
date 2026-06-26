@@ -1,0 +1,23 @@
+{
+  "name": "documents",
+  "primary_key_column": "id",
+  "enable_rls": false,
+  "columns": [
+    { "name": "number", "type": "SERIAL", "auto": true, "unique": true },
+    { "name": "title", "type": "TEXT", "required": true, "max_length": 500 },
+    { "name": "file_path", "type": "FILE_PATH", "required": true, "max_length": 700 },
+    { "name": "doc_type", "type": "ENUM", "required": true,
+      "options": ["manual", "procedure", "specification", "safety_document", "inspection_report", "engineering_drawing", "work_instruction", "other"] },
+    { "name": "status", "type": "ENUM", "required": true, "default": "uploaded",
+      "options": ["uploaded", "processing", "indexed", "quality_review", "approved", "archived"] },
+    { "name": "version", "type": "INTEGER", "default": 1 },
+    { "name": "department", "type": "TEXT" },
+    { "name": "description", "type": "TEXT" },
+    { "name": "tags", "type": "JSON" },
+    { "name": "extracted_summary", "type": "TEXT" },
+    { "name": "content_hash", "type": "TEXT", "unique": true },
+    { "name": "error_message", "type": "TEXT" },
+    { "name": "uploaded_by", "type": "USER" }
+  ],
+  "config": {}
+}

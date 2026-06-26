@@ -1,0 +1,11 @@
+{
+  "name": "document-auto-ingest",
+  "description": "Automatically starts the document-ingestion workflow whenever a new document record is inserted (status = uploaded).",
+  "schedule_type": "DATASTORE",
+  "config": {
+    "table_name": "documents",
+    "operations": ["INSERT"]
+  },
+  "workflow_name": "document-ingestion",
+  "is_active": false
+}

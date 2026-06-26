@@ -1,0 +1,6 @@
+{
+  "name": "industrial-knowledge-brain",
+  "description": "AI-powered industrial knowledge management system — upload documents, extract structured knowledge entities (equipment, procedures, specs, safety rules), and query conversationally with source citations.",
+  "icon_url": "",
+  "format_version": 1
+}

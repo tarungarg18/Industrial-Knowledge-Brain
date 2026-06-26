@@ -1,0 +1,6 @@
+{
+  "name": "knowledge-brain-app",
+  "description": "Operator dashboard for the Industrial Knowledge Brain — document upload & status, knowledge explorer, QA interface, quality management.",
+  "public_slug": "knowledge-brain",
+  "app_type": "html"
+}

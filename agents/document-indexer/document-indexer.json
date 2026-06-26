@@ -1,0 +1,53 @@
+{
+  "name": "document-indexer",
+  "description": "Classifies uploaded industrial documents by type, generates a summary, and extracts relevant tags.",
+  "instruction": { "$file": "instruction.md" },
+  "toolsets": ["POD"],
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "document_id": { "type": "string" },
+      "file_path": { "type": "string" }
+    },
+    "required": ["document_id"]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "summary": { "type": "string" },
+      "doc_type": { "type": "string" },
+      "tags": { "type": "array", "items": { "type": "string" } },
+      "key_topics": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "topic": { "type": "string" },
+            "page_start": { "type": "integer" },
+            "page_end": { "type": "integer" }
+          }
+        }
+      },
+      "confidence": { "type": "number" }
+    },
+    "required": ["summary", "doc_type", "tags", "key_topics", "confidence"]
+  },
+  "permissions": {
+    "grants": [
+      {
+        "resource_type": "datastore_table",
+        "resource_name": "documents",
+        "permission_ids": ["datastore.table.read", "datastore.record.read", "datastore.record.write"]
+      },
+      { "resource_type": "folder", "resource_name": "/manuals", "permission_ids": ["folder.read"] },
+      { "resource_type": "folder", "resource_name": "/procedures", "permission_ids": ["folder.read"] },
+      { "resource_type": "folder", "resource_name": "/safety", "permission_ids": ["folder.read"] },
+      { "resource_type": "folder", "resource_name": "/specifications", "permission_ids": ["folder.read"] },
+      { "resource_type": "folder", "resource_name": "/reports", "permission_ids": ["folder.read"] },
+      { "resource_type": "folder", "resource_name": "/drawings", "permission_ids": ["folder.read"] },
+      { "resource_type": "folder", "resource_name": "/training", "permission_ids": ["folder.read"] },
+      { "resource_type": "folder", "resource_name": "/knowledge", "permission_ids": ["folder.read"] },
+      { "resource_type": "folder", "resource_name": "/inbox", "permission_ids": ["folder.read"] }
+    ]
+  }
+}

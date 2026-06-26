@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Industrial Knowledge Brain</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #e2e8f0; }
+  .app { max-width: 1280px; margin: 0 auto; padding: 24px; }
+  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+  h1 { font-size: 24px; font-weight: 700; color: #38bdf8; }
+  nav { display: flex; gap: 16px; }
+  nav a { color: #94a3b8; text-decoration: none; padding: 8px 16px; border-radius: 6px; }
+  nav a:hover { background: #1e293b; color: #e2e8f0; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .card { background: #1e293b; border-radius: 12px; padding: 24px; border: 1px solid #334155; }
+  .card h3 { font-size: 14px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .card .value { font-size: 36px; font-weight: 700; color: #38bdf8; }
+  .card .sub { font-size: 13px; color: #64748b; margin-top: 4px; }
+  .placeholder { text-align: center; padding: 64px 24px; color: #64748b; }
+  .placeholder h2 { font-size: 20px; margin-bottom: 8px; color: #94a3b8; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Industrial Knowledge Brain</h1>
+    <nav>
+      <a href="#">Dashboard</a>
+      <a href="#">Documents</a>
+      <a href="#">Knowledge</a>
+      <a href="#">Query</a>
+      <a href="#">Quality</a>
+    </nav>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Documents</h3>
+      <div class="value" id="doc-count">—</div>
+      <div class="sub">Total indexed documents</div>
+    </div>
+    <div class="card">
+      <h3>Entities</h3>
+      <div class="value" id="entity-count">—</div>
+      <div class="sub">Extracted knowledge entities</div>
+    </div>
+    <div class="card">
+      <h3>Equipment</h3>
+      <div class="value" id="equip-count">—</div>
+      <div class="sub">Equipment catalog entries</div>
+    </div>
+    <div class="card">
+      <h3>Queries</h3>
+      <div class="value" id="query-count">—</div>
+      <div class="sub">Questions answered this week</div>
+    </div>
+  </div>
+
+  <div class="placeholder">
+    <h2>Welcome to the Knowledge Brain</h2>
+    <p>Upload industrial documents to automatically extract structured knowledge.<br>
+    Search, query, and manage your organization's technical knowledge from one place.</p>
+  </div>
+</div>
+
+<script>
+  async function boot() {
+    var cfg = window.__LEMMA_CONFIG__ || {};
+    var base = (cfg.apiUrl || window.location.origin).replace(/\/$/, "");
+    var s = document.createElement("script");
+    s.src = base + "/public/sdk/lemma-client.js";
+    s.onload = async function () {
+      var client = new window.LemmaClient.LemmaClient();
+      var state = await client.initialize();
+      if (state.status !== "authenticated") { client.auth.redirectToAuth(); return; }
+      // TODO: Load dashboard aggregates from pod tables
+    };
+    document.head.appendChild(s);
+  }
+  boot();
+</script>
+</body>
+</html>
