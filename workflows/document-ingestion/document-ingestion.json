@@ -4,27 +4,13 @@
   "start": { "type": "MANUAL" },
   "nodes": [
     {
-      "id": "start_form",
-      "type": "FORM",
-      "label": "Document ID",
-      "config": {
-        "input_schema": {
-          "type": "object",
-          "properties": {
-            "document_id": { "type": "string" }
-          },
-          "required": ["document_id"]
-        }
-      }
-    },
-    {
       "id": "process_doc",
       "type": "FUNCTION",
       "label": "Initialize Processing",
       "config": {
         "function_name": "process_document",
         "input_mapping": {
-          "document_id": { "type": "expression", "value": "start_form.document_id" }
+          "document_id": { "type": "expression", "value": "start.metadata.record_id || start.payload.document_id" }
         }
       }
     },
@@ -162,7 +148,6 @@
     }
   ],
   "edges": [
-    { "id": "e0", "source": "start_form", "target": "process_doc" },
     { "id": "e1", "source": "process_doc", "target": "classify_doc" },
     { "id": "e2", "source": "classify_doc", "target": "extract_entities" },
     { "id": "e3", "source": "extract_entities", "target": "persist_entities" },

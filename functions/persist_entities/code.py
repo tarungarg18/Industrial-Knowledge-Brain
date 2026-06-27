@@ -3,10 +3,10 @@
 #function_name: persist_entities
 
 import asyncio
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from lemma_sdk import FunctionContext, Pod
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 VALID_ENTITY_TYPES = {
     "equipment", "part", "procedure_step", "specification",
@@ -25,14 +25,30 @@ VALID_PROCEDURE_TYPES = {
 VALID_RISK_LEVELS = {"low", "medium", "high", "critical"}
 
 
+def _coerce_str(v: Any) -> Optional[str]:
+    """Coerce lists/dicts returned by AI to a string."""
+    if v is None:
+        return None
+    if isinstance(v, list):
+        return " ".join(str(i) for i in v)
+    if isinstance(v, dict):
+        return str(v)
+    return str(v)
+
+
 class EntityItem(BaseModel):
     type: Optional[str] = None
     entity_type: Optional[str] = None
     name: Optional[str] = None
-    description: Optional[str] = None
+    description: Optional[Any] = None
     attributes: Optional[dict] = None
     source_page: Optional[int] = None
     confidence: Optional[float] = None
+
+    @field_validator("description", "name", "type", "entity_type", mode="before")
+    @classmethod
+    def coerce_to_str(cls, v: Any) -> Optional[str]:
+        return _coerce_str(v)
 
 
 class EquipmentItem(BaseModel):
@@ -40,8 +56,13 @@ class EquipmentItem(BaseModel):
     category: Optional[str] = None
     manufacturer: Optional[str] = None
     model: Optional[str] = None
-    description: Optional[str] = None
+    description: Optional[Any] = None
     specifications: Optional[dict] = None
+
+    @field_validator("description", "name", "category", "manufacturer", "model", mode="before")
+    @classmethod
+    def coerce_to_str(cls, v: Any) -> Optional[str]:
+        return _coerce_str(v)
 
 
 class ProcedureItem(BaseModel):
