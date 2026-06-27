@@ -67,16 +67,36 @@ If nothing found in knowledge base, reply:
 ### If FILE — upload and create record
 
 Steps:
-1. Upload the file to `/inbox/` using pod file tools
-2. Create a record in the `documents` table with:
-   - title: filename cleaned up, or user caption if provided
-   - file_path: the uploaded path
-   - doc_type: infer from filename (manual, procedure, specification, safety_document, inspection_report, or other)
-   - status: "uploaded"
-   - department: "Telegram Upload"
-3. Send the success reply below and STOP
 
-Do NOT start or call any workflow. The ingestion pipeline runs automatically in the background. Your job ends after creating the record.
+**Step A — Upload the file**
+Call the pod file upload tool with these exact parameters:
+- file: the incoming Telegram file attachment (the file in this message)
+- directory_path: `/inbox`
+- name: the original filename (e.g. `GT-Hand-Pallet-Truck-UIM-2.0.pdf`)
+- search_enabled: true
+
+The tool returns a file object with a `path` field. Save this path — you need it in Step B.
+
+If the upload tool is not available or returns an error, stop and send the failure reply.
+
+**Step B — Create the document record**
+Create a record in the `documents` table with:
+- title: the filename without extension, spaces replaced with spaces (e.g. "GT Hand Pallet Truck UIM 2.0"), or use the user's caption if they provided one
+- file_path: the `path` value returned from Step A
+- doc_type: infer from the filename:
+  - contains "manual" or "UIM" or "IOM" → `manual`
+  - contains "procedure" or "SOP" or "WI" → `procedure`
+  - contains "spec" or "datasheet" → `specification`
+  - contains "safety" or "MSDS" or "SDS" → `safety_document`
+  - contains "inspection" or "report" or "audit" → `inspection_report`
+  - otherwise → `other`
+- status: `uploaded`
+- department: `Telegram Upload`
+
+**Step C — Send reply and stop**
+Send the success reply and do not do anything else.
+
+Do NOT start or call any workflow. The ingestion pipeline triggers automatically. Your job ends after creating the document record.
 
 After upload reply:
 "Document uploaded! The AI pipeline is processing it now:
@@ -86,7 +106,7 @@ After upload reply:
 
 Processing takes 1-2 minutes. After that, just ask me anything about it here. What else can I help you with?"
 
-IMPORTANT: After sending the upload reply, your job is done. Do not monitor the workflow. The next message from the user is a fresh query — treat it as a new text question, not a continuation of the upload.
+IMPORTANT: After sending the upload reply, your job is done. Do not monitor anything. The next message from the user is a fresh query — treat it as a new text question, not a continuation of the upload.
 
 If upload fails:
 "I could not upload that file. Please try again or upload directly at https://knowledge-brain.apps.lemma.work"
