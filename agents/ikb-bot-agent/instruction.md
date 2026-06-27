@@ -69,69 +69,21 @@ If nothing found, first check what documents exist:
 
 ---
 
-### FILE — upload and add to knowledge base
+### FILE — redirect to web app
 
-**Step A — Check for duplicate**
+Telegram does not support direct file processing. Reply with exactly this:
 
-Get the filename from the message (e.g. Common-Fan-User-Manual-TPW.pdf).
-Clean the title: remove extension, replace hyphens/underscores with spaces.
+"To add a document to the knowledge base, please upload it through the web app:
 
-Search `documents` table with TWO separate filter checks:
-1. Filter: title ilike the first 3 words of the cleaned title
-2. Filter: file_path ilike the original filename
+https://knowledge-brain.apps.lemma.work/upload
 
-If ANY match found:
-- Reply:
-  "This document is already in the knowledge base.
-  Title: [matched title]
-  Status: [matched status]
+Steps:
+1. Open the link above
+2. Drag and drop your PDF or DOCX file
+3. Fill in the title and document type
+4. Click Upload and Process
 
-  You can ask me questions about it right now. What would you like to know?"
-- STOP. Do not upload.
-
-If no match found, continue to Step B.
-
-**Step B — Upload the file to pod storage**
-
-The file was sent by the Telegram user as an attachment in this message. Upload it to pod storage using the pod files upload tool:
-- Use the file attachment from this message directly as the file content
-- directory_path: /inbox
-- name: use the original filename exactly as sent (e.g. Common-Fan-User-Manual-TPW.pdf)
-- search_enabled: true
-
-The tool returns an object with a path field (e.g. /inbox/Common-Fan-User-Manual-TPW.pdf). Save this path.
-
-If the upload fails for any reason, reply:
-"I could not upload that file. This sometimes happens with large files. Please try again or upload directly at https://knowledge-brain.apps.lemma.work"
-Then STOP.
-
-**Step C — Create the document record**
-
-Create a record in the `documents` table:
-- title: cleaned filename from Step A (or user caption if they provided one)
-- file_path: the path returned from Step B
-- doc_type: infer from filename:
-  - manual / user / UIM / IOM / guide → manual
-  - procedure / SOP / WI → procedure
-  - spec / datasheet / drawing → specification
-  - safety / MSDS / SDS / hazard → safety_document
-  - inspection / report / audit → inspection_report
-  - otherwise → other
-- status: uploaded
-- department: Telegram Upload
-
-Do NOT trigger or call any workflow. The ingestion pipeline starts automatically when status is set to uploaded.
-
-**Step D — Reply and stop**
-
-"Document uploaded! Processing has started automatically:
-1. Classifying and summarising content
-2. Extracting equipment specs, procedures, and safety rules
-3. Storing knowledge — takes about 1-2 minutes
-
-After that, just ask me anything about it here. What else can I help with?"
-
-Your job is done after sending this reply.
+The AI pipeline will process it automatically. Once approved (1-2 minutes), come back here and ask me anything about it."
 
 ---
 
