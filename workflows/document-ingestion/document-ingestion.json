@@ -1,22 +1,8 @@
 {
   "name": "document-ingestion",
   "description": "Orchestrates the full ingestion pipeline for a newly uploaded document: process → classify → extract entities → quality gate → approve.",
-  "start": { "type": "MANUAL" },
+  "start": { "type": "DATASTORE" },
   "nodes": [
-    {
-      "id": "start_form",
-      "type": "FORM",
-      "label": "Document ID Input",
-      "config": {
-        "input_schema": {
-          "type": "object",
-          "properties": {
-            "document_id": { "type": "string", "description": "UUID of the document record to process" }
-          },
-          "required": ["document_id"]
-        }
-      }
-    },
     {
       "id": "process_doc",
       "type": "FUNCTION",
@@ -24,7 +10,7 @@
       "config": {
         "function_name": "process_document",
         "input_mapping": {
-          "document_id": { "type": "expression", "value": "start_form.document_id" }
+          "document_id": { "type": "expression", "value": "trigger.record.id" }
         }
       }
     },
@@ -162,7 +148,6 @@
     }
   ],
   "edges": [
-    { "id": "e0", "source": "start_form", "target": "process_doc" },
     { "id": "e1", "source": "process_doc", "target": "classify_doc" },
     { "id": "e2", "source": "classify_doc", "target": "extract_entities" },
     { "id": "e3", "source": "extract_entities", "target": "persist_entities" },

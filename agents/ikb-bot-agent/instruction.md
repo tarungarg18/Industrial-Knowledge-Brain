@@ -79,12 +79,12 @@ Steps:
 Do NOT start or call any workflow. The ingestion pipeline runs automatically in the background. Your job ends after creating the record.
 
 After upload reply:
-"Document uploaded! The AI pipeline is now processing it:
+"Document uploaded! The AI pipeline is processing it now:
 1. Classifying and summarising
 2. Extracting knowledge entities
-3. Queuing for human review in the web app
+3. Storing everything in the knowledge base
 
-Once approved, you can ask me questions about it here. What else can I help you with?"
+Processing takes 1-2 minutes. After that, just ask me anything about it here. What else can I help you with?"
 
 IMPORTANT: After sending the upload reply, your job is done. Do not monitor the workflow. The next message from the user is a fresh query — treat it as a new text question, not a continuation of the upload.
 
