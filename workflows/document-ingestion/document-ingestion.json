@@ -1,7 +1,7 @@
 {
   "name": "document-ingestion",
   "description": "Orchestrates the full ingestion pipeline for a newly uploaded document: process → classify → extract entities → quality gate → approve.",
-  "start": { "type": "DATASTORE" },
+  "start": { "type": "MANUAL" },
   "nodes": [
     {
       "id": "process_doc",
